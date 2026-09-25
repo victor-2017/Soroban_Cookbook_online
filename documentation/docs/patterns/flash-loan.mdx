@@ -7,6 +7,7 @@ image: /img/soroban-social-card.png
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/Callout';
 
 <PatternMeta
   slug="flash-loan"
@@ -31,6 +32,14 @@ This pattern demonstrates how to implement a **Flash Loan** pool in Soroban. Bec
 </PatternSection>
 
 <PatternSection id="implementation" title="Implementation">
+
+<Callout variant="warning" title="Unaudited Educational Example — Not for Production">
+  This contract pattern is an educational example and has not undergone an independent security audit. Do not deploy this snippet to production or mainnet without substantial hardening, complete test coverage, and formal review.
+
+  **Security & Architectural Limitations:**
+  - **Authorization & `require_auth`:** The pool's public `flash_loan` entrypoint intentionally does not require caller authentication because flash loans are permissionless by design. However, administrative functions (such as `initialize` and `withdraw_fees`) require explicit `admin.require_auth()` authorization, and `deposit_liquidity` requires `from.require_auth()`. Furthermore, the receiver's `execute_operation` callback must verify that the calling `pool` matches the expected pool address to prevent unauthorized execution or spoofed callback attacks.
+  - **Storage TTL & Data Expiry:** The pool's configuration (`Admin`, `Token`, `FeeBps`, `FeesCollected`) is stored in `instance` storage. In Soroban, instance storage entries share the contract instance's time-to-live (TTL). If the instance TTL is not routinely monitored and extended via `env.storage().instance().extend_ttl(...)`, the contract and its state will expire, disabling flash loan operations until restored.
+</Callout>
 
 ### The Receiver Interface
 

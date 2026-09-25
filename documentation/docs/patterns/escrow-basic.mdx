@@ -7,10 +7,11 @@ tags: [escrow, defi, intermediate]
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import { Callout } from '@site/src/components/Callout';
 
 # Escrow — Basic
 
-A production-ready two-party escrow contract with an arbiter for dispute resolution.
+An educational two-party escrow contract with an arbiter for dispute resolution.
 
 ## Overview
 
@@ -34,6 +35,15 @@ to the seller or refund the buyer.
 | **Arbiter** | Release to seller, refund buyer | Nothing else |
 
 ## Contract
+
+<Callout variant="warning" title="Unaudited Educational Example — Not for Production">
+  This contract pattern is an educational example and has not undergone an independent security audit. Do not deploy this snippet to production or mainnet with real funds without substantial hardening, complete test coverage, and formal verification.
+
+  **Security & Architectural Limitations:**
+  - **Authentication & Authorization:** Every state-modifying action requires explicit caller verification (`buyer.require_auth()` in `deposit()`, `caller.require_auth()` checked against `buyer` or `arbiter` in `release()`, and `caller.require_auth()` restricted strictly to `arbiter` in `refund()`). Note that `initialize()` in this educational snippet does not enforce caller authorization, allowing anyone to initialize an uninitialized contract instance.
+  - **Reentrancy:** State updates (`EscrowState::Funded`, `Released`, `Refunded`) should be written following checks-effects-interactions principles before external token contract calls. In Soroban's synchronous cross-contract execution model, token transfers resolve atomically; however, if external untrusted callbacks or token contracts are involved, effects must be finalized prior to external interactions.
+  - **Storage TTL & Data Expiry:** All contract entries (`Buyer`, `Seller`, `Arbiter`, `Token`, `Amount`, `State`) are stored in `persistent` storage. While `persistent` storage entries survive contract archiving and can be restored, they possess a finite time-to-live (TTL) on the ledger. Production deployments must routinely monitor and extend entry TTLs using `env.storage().persistent().extend_ttl(...)` to prevent escrow data from becoming archived and temporarily unusable.
+</Callout>
 
 <Tabs>
 <TabItem value="contract" label="escrow_basic/src/lib.rs">
